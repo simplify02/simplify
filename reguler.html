@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplify.id | PT. Intan Pariwara</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/libs/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    
+    <style>
+        /* CSS Variables - Light Theme */
+        :root { 
+            --primary: #1e3a8a; --accent: #3b82f6; --sidebar-width: 260px;
+            --bg-body: #f1f5f9; --bg-card: #ffffff; --bg-sidebar: #ffffff;
+            --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+            --table-header: #f8fafc; --hover-bg: #f8fafc; --active-bg: #eff6ff;
+            --input-bg: #ffffff; --card-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        /* CSS Variables - Dark Theme */
+        [data-theme="dark"] {
+            --primary: #3b82f6; --accent: #60a5fa;
+            --bg-body: #0f172a; --bg-card: #1e293b; --bg-sidebar: #1e293b;
+            --text-main: #ffffff; --text-muted: #cbd5e1; --border-color: #334155;
+            --table-header: #0f172a; --hover-bg: #334155; --active-bg: #1e3a8a;
+            --input-bg: #334155; --card-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* General Styles */
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+        .text-dark { color: var(--text-main) !important; }
+        .text-muted { color: var(--text-muted) !important; }
+        
+        .wrapper { display: flex; width: 100%; align-items: stretch; min-height: 100vh; }
+        
+        #sidebar { min-width: var(--sidebar-width); max-width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000; transition: all 0.3s; }
+        .sidebar-header { padding: 25px 20px; background: #1e3a8a; color: white; }
+        
+        .nav-link { color: var(--text-muted); padding: 12px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; margin-bottom: 5px; transition: 0.2s; }
+        .nav-link:hover { background-color: var(--hover-bg); color: var(--primary); }
+        .nav-link.active { background-color: var(--active-bg); color: var(--primary); font-weight: 600; }
+        .nav-link.text-danger:hover { color: #dc2626 !important; background-color: rgba(220,38,38,0.1); }
+        
+        #content { width: 100%; padding: 30px; }
+        .top-header { border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--card-shadow); transition: all 0.3s; }
+        .chart-container { position: relative; height: 320px; width: 100%; }
+        
+        .module-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; height: 100%; transition: 0.3s; }
+        .module-box:hover { border-color: var(--accent); transform: translateY(-3px); }
+        .icon-wrapper { width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 15px; }
+        
+        .bg-light-primary { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+        .bg-light-info { background: rgba(13, 202, 240, 0.1); color: #0dcaf0; }
+        .bg-light-success { background: rgba(22, 163, 74, 0.1); color: #16a34a; }
+        .bg-light-danger { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
+        .bg-light-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+        .summary-widget { padding: 20px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; height: 100%; }
+        .summary-icon { min-width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 15px; }
+
+        .form-select, .form-control, .input-group-text { background-color: var(--input-bg); color: var(--text-main); border-color: var(--border-color); }
+        .table { color: var(--text-main) !important; --bs-table-bg: transparent; font-size: 0.9rem; }
+        .table-light th { background-color: var(--table-header) !important; color: var(--text-main) !important; border-bottom: 1px solid var(--border-color); border-top: none; white-space: nowrap; }
+        .table td { color: var(--text-main) !important; border-bottom: 1px solid var(--border-color); padding: 12px 16px; white-space: nowrap; vertical-align: middle; }
+        .table-hover tbody tr:hover { background-color: var(--hover-bg); }
+        
+        .rank-badge { width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; }
+        .rank-1 { background: #fbbf24; color: #78350f; }
+        .rank-2 { background: #94a3b8; color: #0f172a; }
+        .rank-3 { background: #d97706; color: #fffbeb; }
+        .rank-other { background: var(--border-color); color: var(--text-main); }
+        .table-responsive { max-height: 450px; overflow-y: auto; }
+        
+        .badge-ach { padding: 5px 8px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; display: inline-block; min-width: 65px; text-align: center; }
+        .fade-in { animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom scrollbar for inner cards */
+        .inner-table-wrapper::-webkit-scrollbar { width: 6px; }
+        .inner-table-wrapper::-webkit-scrollbar-track { background-color: rgba(0,0,0,0.04); border-radius: 10px; }
+        [data-theme="dark"] .inner-table-wrapper::-webkit-scrollbar-track { background-color: rgba(255,255,255,0.05); }
+        .inner-table-wrapper::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 10px; }
+        .inner-table-wrapper::-webkit-scrollbar-thumb:hover { background-color: var(--text-muted); }
+        
+        /* Animasi scroll hint */
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+        .scroll-hint-icon { display: inline-block; animation: bounce 2s infinite; }
+
+        /* Login Page Styles */
+        #login-page { background-color: var(--primary); background-image: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        .login-card { background: var(--bg-card); border-radius: 1.5rem; padding: 3rem; width: 100%; max-width: 420px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .form-control:focus, .form-select:focus { background-color: var(--input-bg); color: var(--text-main); border-color: var(--accent); box-shadow: 0 0 0 0.25rem rgba(59,130,246,0.25); }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page" class="d-flex align-items-center justify-content-center min-vh-100">
+    <div class="login-card text-center">
+        <i class="bi bi-bar-chart-fill text-primary mb-3 d-inline-block" style="font-size: 3.5rem;"></i>
+        <h3 class="fw-bold mb-1" style="color: var(--text-main);">Simplify.id</h3>
+        <p class="text-muted mb-4 small">PT. Intan Pariwara Dashboard</p>
+        
+        <form id="loginForm" class="text-start">
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-muted">Username</label>
+                <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold small text-muted">Password</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">Masuk Sistem</button>
+            <div id="loginError" class="text-danger small mt-3 text-center fw-bold d-none">Username atau Password salah!</div>
+        </form>
+    </div>
+</div>
+
+<!-- MAIN APP (Tersembunyi sampai Login) -->
+<div id="app-wrapper" class="wrapper d-none">
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h5 class="fw-bold m-0"><i class="bi bi-bar-chart-fill me-2"></i>Simplify.id</h5>
+        </div>
+
+        <div class="p-3 d-flex flex-column" style="height: calc(100vh - 80px);">
+            <div class="mb-auto">
+                <p class="small text-muted fw-bold px-3 mb-2 text-uppercase">Menu Utama</p>
+                <ul class="nav flex-column mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" onclick="switchMenu('beranda')" id="nav-beranda"><i class="bi bi-grid-1x2-fill me-2"></i> LAPORAN</a>
+                    </li>
+                    <li class="nav-item d-none" id="menu-realisasi">
+                        <a class="nav-link" onclick="switchMenu('realisasi')" id="nav-realisasi"><i class="bi bi-box-seam-fill me-2"></i> Input Data Pesanan</a>
+                    </li>
+                    <li class="nav-item d-none" id="menu-target">
+                        <a class="nav-link" onclick="switchMenu('target')" id="nav-target"><i class="bi bi-bullseye me-2"></i> Input Target Penjualan</a>
+                    </li>
+                    <li class="nav-item d-none" id="menu-users">
+                        <a class="nav-link" onclick="switchMenu('users')" id="nav-users"><i class="bi bi-people-fill me-2"></i> Manajemen User</a>
+                    </li>
+                </ul>
+
+                <hr class="border-secondary opacity-25">
+
+                <p class="small text-muted fw-bold px-3 mb-2 text-uppercase">Pengaturan</p>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleTheme()"><i class="bi bi-moon-stars-fill me-2" id="theme-icon"></i> <span id="theme-text">Mode Gelap</span></a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Bagian Bawah Sidebar -->
+            <div>
+                <div class="bg-light rounded p-3 mb-3" style="background-color: var(--hover-bg) !important;">
+                    <small class="d-block text-muted mb-1">Login sebagai:</small>
+                    <h6 class="fw-bold m-0 text-primary" id="activeUserName">Admin</h6>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link text-danger fw-bold" onclick="logout()"><i class="bi bi-box-arrow-left me-2"></i> Keluar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="content">
+        <div class="top-header">
+            <div>
+                <h3 class="fw-bold m-0 text-dark" id="header-title">Simplify.id</h3>
+                <small class="text-muted" id="header-subtitle">Ringkasan performa & pencapaian penjualan nasional</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-primary shadow-sm fw-bold d-none" id="btnExportPPT" onclick="exportToPPT()">
+                    <i class="bi bi-file-earmark-ppt-fill me-2"></i>Ekspor ke PPT
+                </button>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-6"><i class="bi bi-calendar-check me-2"></i>Tahun Berjalan</span>
+            </div>
+        </div>
+
+        <div id="view-beranda" class="fade-in">
+            <div id="emptyState" class="d-flex flex-column align-items-center justify-content-center text-center mt-5 pt-5 opacity-50">
+                <i class="bi bi-inboxes-fill text-secondary mb-3" style="font-size: 5rem;"></i>
+                <h4 class="fw-bold text-secondary">Belum Ada Data Laporan</h4>
+                <p class="text-muted" id="emptyStateMsg">Silakan unggah <strong>Data Pesanan</strong> dan <strong>Data Target Penjualan</strong> melalui menu di samping.</p>
+            </div>
+
+            <div id="dashboardSection" class="d-none">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="summary-widget">
+                            <div class="summary-icon bg-light-warning"><i class="bi bi-bullseye"></i></div>
+                            <div><small class="text-muted fw-bold">TARGET BRUTO</small><h5 class="fw-bold m-0 text-dark" id="sumTargetBruto">Rp 0</h5></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="summary-widget border-info">
+                            <div class="summary-icon bg-light-info"><i class="bi bi-cart-check-fill"></i></div>
+                            <div><small class="text-muted fw-bold">REALISASI BRUTO</small><h5 class="fw-bold m-0 text-info" id="sumRealBruto">Rp 0</h5><small id="sumAchBruto" class="fw-bold">0%</small></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="summary-widget">
+                            <div class="summary-icon bg-light-warning"><i class="bi bi-bullseye"></i></div>
+                            <div><small class="text-muted fw-bold">TARGET NETTO</small><h5 class="fw-bold m-0 text-dark" id="sumTargetNetto">Rp 0</h5></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="summary-widget border-success">
+                            <div class="summary-icon bg-light-success"><i class="bi bi-graph-up-arrow"></i></div>
+                            <div><small class="text-muted fw-bold">REALISASI NETTO</small><h5 class="fw-bold m-0 text-success" id="sumRealNetto">Rp 0</h5><small id="sumAchNetto" class="fw-bold">0%</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-6">
+                        <div class="card p-4 border-top border-success border-4 h-100">
+                            <h6 class="fw-bold text-center mb-4 text-dark">KOMPOSISI REALISASI NETTO (BO)</h6>
+                            <div class="chart-container"><canvas id="boPieChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card p-4 border-top border-info border-4 h-100">
+                            <h6 class="fw-bold text-center mb-4 text-dark">KOMPOSISI REALISASI BRUTO (BO)</h6>
+                            <div class="chart-container"><canvas id="boBrutoPieChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card p-4 border-top border-secondary border-4">
+                            <h6 class="fw-bold text-center mb-4 text-dark">REALISASI PESAN PER PRINCIPAL (Bruto vs Netto)</h6>
+                            <div class="chart-container"><canvas id="principalChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RINCIAN PER PRINCIPAL -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card p-4 border-top border-primary border-4">
+                            <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-tags-fill me-2 text-primary"></i>Rincian Penjualan per Principal & Cabang</h5>
+                            <p class="text-muted small mb-4">Nominal pencapaian masing-masing Cabang (BO) diurutkan berdasarkan Realisasi Netto tertinggi pada setiap kategori Principal.</p>
+                            <div class="row g-3" id="principalBOGrid">
+                                <!-- Cards generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card p-4 border-top border-success border-4">
+                            <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-building-fill me-2 text-success"></i>Pencapaian Cabang (BO)</h5>
+                            <div class="table-responsive border rounded" style="border-color: var(--border-color) !important;">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th width="50" class="text-center">Rank</th>
+                                            <th>Cabang (BO)</th>
+                                            <th class="text-end text-muted border-start">Target Bruto</th>
+                                            <th class="text-end text-info">Real. Bruto</th>
+                                            <th class="text-center">% Bruto</th>
+                                            <th class="text-end text-muted border-start">Target Netto</th>
+                                            <th class="text-end text-success">Real. Netto</th>
+                                            <th class="text-center">% Netto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="boTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card p-4 border-top border-warning border-4">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+                                <h5 class="fw-bold mb-3 mb-md-0 text-dark"><i class="bi bi-trophy-fill me-2 text-warning"></i>Pencapaian Sales</h5>
+                                <div class="d-flex flex-column flex-sm-row gap-2">
+                                    <div class="input-group shadow-sm" style="min-width: 250px;">
+                                        <span class="input-group-text border-end-0 bg-transparent"><i class="bi bi-search text-muted"></i></span>
+                                        <input type="text" id="searchSalesInput" class="form-control border-start-0 ps-0" placeholder="Cari Nama Sales..." onkeyup="renderFilteredSalesTable()">
+                                    </div>
+                                    <select id="filterBOSelect" class="form-select shadow-sm fw-bold" style="min-width: 200px;" onchange="renderFilteredSalesTable()">
+                                        <option value="ALL">-- Semua BO --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-responsive border rounded" style="border-color: var(--border-color) !important;">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th width="50" class="text-center">Rank</th>
+                                            <th>Nama Sales</th>
+                                            <th>Cabang (BO)</th>
+                                            <th class="text-end text-muted border-start">Target Bruto</th>
+                                            <th class="text-end text-info">Real. Bruto</th>
+                                            <th class="text-center">% Bruto</th>
+                                            <th class="text-end text-muted border-start">Target Netto</th>
+                                            <th class="text-end text-success">Real. Netto</th>
+                                            <th class="text-center">% Netto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-realisasi" class="d-none fade-in">
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="module-box text-center" style="cursor: pointer;" onclick="document.getElementById('excelFileReal').click()">
+                        <div class="icon-wrapper mx-auto bg-light-primary"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                        <h5 class="fw-bold text-dark mb-2">Import Data Pesanan</h5>
+                        <p class="text-muted small">Unggah laporan realisasi pesan (Bruto & Netto).</p>
+                        <span class="badge bg-primary text-white p-2 w-100" id="uploadTextReal">Pilih File Excel</span>
+                        <input type="file" id="excelFileReal" hidden accept=".xlsx, .xls">
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="module-box text-center" style="cursor: pointer;" onclick="downloadTemplateReal()">
+                        <div class="icon-wrapper mx-auto bg-light-success"><i class="bi bi-file-earmark-excel-fill"></i></div>
+                        <h5 class="fw-bold text-dark mb-2">Template Data Pesanan</h5>
+                        <p class="text-muted small">Unduh template Excel standar sistem.</p>
+                        <span class="badge bg-success text-white p-2 w-100">Unduh Sekarang</span>
+                    </div>
+                </div>
+                <div class="col-md-12 col-lg-4">
+                    <div class="module-box">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-wrapper bg-light-danger me-3 mb-0" style="width:50px; height:50px;"><i class="bi bi-database-fill-gear"></i></div>
+                            <div>
+                                <h6 class="fw-bold m-0 text-dark">Status Data Pesanan</h6>
+                                <span class="badge bg-secondary" id="dbStatusBadgeReal">Kosong</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <button class="btn btn-outline-danger w-100 fw-bold" onclick="clearStoredData('realisasi')" id="btnHapusDataReal" disabled>
+                            <i class="bi bi-trash3-fill me-2"></i>Hapus Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-target" class="d-none fade-in">
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="module-box text-center" style="cursor: pointer;" onclick="document.getElementById('excelFileTarget').click()">
+                        <div class="icon-wrapper mx-auto bg-light-warning"><i class="bi bi-bullseye"></i></div>
+                        <h5 class="fw-bold text-dark mb-2">Import Target Penjualan</h5>
+                        <p class="text-muted small">Unggah master data Target per Sales & BO.</p>
+                        <span class="badge bg-warning text-dark p-2 w-100" id="uploadTextTarget">Pilih File Excel</span>
+                        <input type="file" id="excelFileTarget" hidden accept=".xlsx, .xls">
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="module-box text-center" style="cursor: pointer;" onclick="downloadTemplateTarget()">
+                        <div class="icon-wrapper mx-auto bg-light-success"><i class="bi bi-file-earmark-excel-fill"></i></div>
+                        <h5 class="fw-bold text-dark mb-2">Template Target Penjualan</h5>
+                        <p class="text-muted small">Unduh template target penjualan.</p>
+                        <span class="badge bg-success text-white p-2 w-100">Unduh Sekarang</span>
+                    </div>
+                </div>
+                <div class="col-md-12 col-lg-4">
+                    <div class="module-box">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-wrapper bg-light-danger me-3 mb-0" style="width:50px; height:50px;"><i class="bi bi-database-fill-gear"></i></div>
+                            <div>
+                                <h6 class="fw-bold m-0 text-dark">Status Target Penjualan</h6>
+                                <span class="badge bg-secondary" id="dbStatusBadgeTarget">Kosong</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <button class="btn btn-outline-danger w-100 fw-bold" onclick="clearStoredData('target')" id="btnHapusDataTarget" disabled>
+                            <i class="bi bi-trash3-fill me-2"></i>Hapus Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW MANAJEMEN USER -->
+        <div id="view-users" class="d-none fade-in">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card border-top border-primary border-4">
+                        <h5 class="fw-bold mb-3 text-dark">Tambah User Baru</h5>
+                        <form id="addUserForm">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Username</label>
+                                <input type="text" id="newUsername" class="form-control" placeholder="cth: direktur.03" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Nama Tampilan</label>
+                                <input type="text" id="newName" class="form-control" placeholder="Nama Lengkap/Jabatan" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Role</label>
+                                <select id="newRole" class="form-select">
+                                    <option value="viewer">Viewer (Hanya Lihat)</option>
+                                    <option value="admin">Admin (Full Akses)</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted">Password Default</label>
+                                <input type="text" id="newPass" class="form-control" value="reguler.pwm" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">Simpan User</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card border-top border-info border-4">
+                        <h5 class="fw-bold mb-3 text-dark">Daftar Pengguna Sistem</h5>
+                        <div class="table-responsive border rounded" style="border-color: var(--border-color) !important;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Nama</th>
+                                        <th>Role</th>
+                                        <th>Password</th>
+                                        <th class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- USER DATABASE & AUTH ---
+    const K_USER_DB = 'IP_USERS_DB';
+    const K_SESSION = 'IP_SESSION_USER';
+
+    const DEFAULT_USERS = {
+        'dirut.pwm': { role: 'viewer', name: 'Direktur Utama', pass: 'reguler.pwm' },
+        'dirpas.01': { role: 'viewer', name: 'Direktur Pemasaran 1', pass: 'reguler.pwm' },
+        'dirpas.02': { role: 'viewer', name: 'Direktur Pemasaran 2', pass: 'reguler.pwm' },
+        'sma.pwm':   { role: 'admin',  name: 'Sales Management Admin', pass: 'reguler.pwm' }
+    };
+
+    let USERS = JSON.parse(localStorage.getItem(K_USER_DB)) || DEFAULT_USERS;
+
+    function saveUsers() { 
+        localStorage.setItem(K_USER_DB, JSON.stringify(USERS)); 
+        renderUserTable(); 
+    }
+
+    // --- APP VARIABLES ---
+    const REAL_KEY = 'RealDataIntanPariwara';
+    const TARGET_KEY = 'TargetDataIntanPariwara';
+    const THEME_KEY = 'ThemeIntanPariwara';
+
+    let realData = [];
+    let targetData = [];
+    let globalSalesMap = {}; 
+    let boMap = {};
+    let principalMap = {};
+    
+    let totalTargetBruto = 0, totalRealBruto = 0;
+    let totalTargetNetto = 0, totalRealNetto = 0;
+
+    let boPieChartInstance = null;
+    let boBrutoPieChartInstance = null;
+    let principalChartInstance = null;
+
+    const colorPalette = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16'];
+    const pptColorPalette = ['3b82f6', '10b981', 'f59e0b', 'ef4444', '8b5cf6', '06b6d4', 'f97316', '84cc16'];
+
+    // --- INIT & AUTH LOGIC ---
+    window.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        checkLoginStatus();
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const u = document.getElementById('loginUsername').value.trim().toLowerCase();
+        const p = document.getElementById('loginPassword').value;
+
+        if (USERS[u] && USERS[u].pass === p) {
+            sessionStorage.setItem(K_SESSION, u);
+            document.getElementById('loginError').classList.add('d-none');
+            checkLoginStatus();
+        } else {
+            document.getElementById('loginError').classList.remove('d-none');
+        }
+    });
+
+    function checkLoginStatus() {
+        const activeUser = sessionStorage.getItem(K_SESSION);
+        if (activeUser && USERS[activeUser]) {
+            // Sembunyikan Login, Munculkan App
+            document.getElementById('login-page').classList.add('d-none');
+            document.getElementById('app-wrapper').classList.remove('d-none');
+            
+            // Set Identitas
+            document.getElementById('activeUserName').innerText = USERS[activeUser].name;
+            
+            // Atur Akses Role
+            applyRoleRestrictions(USERS[activeUser].role);
+
+            // Load Data Dashboard
+            loadDataDashboard();
+        } else {
+            // Sembunyikan App, Munculkan Login
+            document.getElementById('login-page').classList.remove('d-none');
+            document.getElementById('app-wrapper').classList.add('d-none');
+        }
+    }
+
+    function applyRoleRestrictions(role) {
+        if (role === 'viewer') {
+            document.getElementById('menu-realisasi').classList.add('d-none');
+            document.getElementById('menu-target').classList.add('d-none');
+            document.getElementById('menu-users').classList.add('d-none');
+            document.getElementById('emptyStateMsg').innerHTML = 'Data laporan belum tersedia. Silakan hubungi tim Admin (SMA) untuk mengunggah data.';
+        } else {
+            document.getElementById('menu-realisasi').classList.remove('d-none');
+            document.getElementById('menu-target').classList.remove('d-none');
+            document.getElementById('menu-users').classList.remove('d-none');
+            document.getElementById('emptyStateMsg').innerHTML = 'Silakan unggah <strong>Data Pesanan</strong> dan <strong>Data Target Penjualan</strong> melalui menu di samping.';
+        }
+    }
+
+    function logout() {
+        sessionStorage.removeItem(K_SESSION);
+        location.reload();
+    }
+
+    // --- MANAJEMEN USER LOGIC ---
+    function renderUserTable() {
+        const tbody = document.getElementById('userTableBody');
+        if(!tbody) return;
+        tbody.innerHTML = Object.entries(USERS).map(([u, d]) => `
+            <tr>
+                <td class="fw-bold">${u}</td>
+                <td>${d.name}</td>
+                <td><span class="badge ${d.role==='admin'?'bg-primary':'bg-secondary'}">${d.role.toUpperCase()}</span></td>
+                <td><code class="text-primary fw-bold" style="font-size: 1rem;">${d.pass}</code></td>
+                <td class="text-center">
+                    ${u === 'sma.pwm' ? '' : `<button class="btn btn-sm btn-light text-danger border p-1 px-2" onclick="deleteUser('${u}')" title="Hapus User"><i class="bi bi-trash-fill"></i></button>`}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    document.getElementById('addUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const u = document.getElementById('newUsername').value.trim().toLowerCase();
+        if(USERS[u]) return alert("Gagal! Username ini sudah ada di dalam sistem.");
+        USERS[u] = {
+            name: document.getElementById('newName').value.trim(),
+            role: document.getElementById('newRole').value,
+            pass: document.getElementById('newPass').value
+        };
+        saveUsers();
+        e.target.reset();
+    });
+
+    function deleteUser(u) {
+        if(confirm(`PERINGATAN: Anda yakin ingin mencabut akses untuk user: ${u}?`)) {
+            delete USERS[u];
+            saveUsers();
+        }
+    }
+
+    // --- THEME LOGIC ---
+    function initTheme() { 
+        const savedTheme = localStorage.getItem(THEME_KEY) || 'light'; 
+        document.documentElement.setAttribute('data-theme', savedTheme); 
+        updateThemeUI(savedTheme); 
+    }
+    
+    function toggleTheme() { 
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; 
+        document.documentElement.setAttribute('data-theme', next); 
+        localStorage.setItem(THEME_KEY, next); 
+        updateThemeUI(next); 
+        if(realData.length > 0 || targetData.length > 0) processDashboard(); 
+    }
+    
+    function updateThemeUI(t) { 
+        const ts = document.getElementById('theme-text'); 
+        const ic = document.getElementById('theme-icon'); 
+        if(t==='dark') { 
+            ts.innerText='Mode Terang'; ic.className='bi bi-sun-fill'; Chart.defaults.color='#ffffff'; 
+        } else { 
+            ts.innerText='Mode Gelap'; ic.className='bi bi-moon-stars-fill'; Chart.defaults.color='#64748b'; 
+        } 
+    }
+
+    // --- APP NAVIGATION ---
+    function switchMenu(menuName) {
+        ['beranda', 'realisasi', 'target', 'users'].forEach(m => { 
+            const nav = document.getElementById(`nav-${m}`);
+            const view = document.getElementById(`view-${m}`);
+            if(nav) nav.classList.remove('active'); 
+            if(view) view.classList.add('d-none'); 
+        });
+        
+        document.getElementById(`nav-${menuName}`).classList.add('active'); 
+        document.getElementById(`view-${menuName}`).classList.remove('d-none');
+
+        if (menuName === 'beranda') {
+            document.getElementById('header-title').innerText = 'Simplify.id';
+            document.getElementById('header-subtitle').innerText = 'Ringkasan performa & pencapaian penjualan nasional';
+            if(realData.length > 0 || targetData.length > 0) processDashboard(); 
+        } else if (menuName === 'realisasi') {
+            document.getElementById('header-title').innerText = 'Input Data Pesanan';
+            document.getElementById('header-subtitle').innerText = 'Kelola data aktual pencapaian harian/bulanan';
+        } else if (menuName === 'target') {
+            document.getElementById('header-title').innerText = 'Input Data Target Penjualan';
+            document.getElementById('header-subtitle').innerText = 'Kelola master target (Bruto & Netto) Sales Force';
+        } else if (menuName === 'users') {
+            document.getElementById('header-title').innerText = 'Manajemen User Sistem';
+            document.getElementById('header-subtitle').innerText = 'Kelola hak akses dan password para pengguna aplikasi';
+            renderUserTable();
+        }
+    }
+
+    // --- DATA PROCESSING ---
+    function loadDataDashboard() {
+        try {
+            const sReal = localStorage.getItem(REAL_KEY);
+            const sTarget = localStorage.getItem(TARGET_KEY);
+            if (sReal) { realData = JSON.parse(sReal); updateUIStatus('realisasi', realData.length); }
+            if (sTarget) { targetData = JSON.parse(sTarget); updateUIStatus('target', targetData.length); }
+            
+            if (realData.length > 0 || targetData.length > 0) {
+                document.getElementById('emptyState').classList.add('d-none');
+                document.getElementById('dashboardSection').classList.remove('d-none');
+                document.getElementById('btnExportPPT').classList.remove('d-none');
+                processDashboard();
+            }
+        } catch (e) { console.error("Error loading data", e); }
+    }
+
+    function getNum(r, names) {
+        const keys = Object.keys(r);
+        for(let n of names) {
+            const f = keys.find(k => k.trim().toLowerCase() === n.toLowerCase());
+            if(f) {
+                let v = r[f];
+                if(typeof v === 'number') return v;
+                if(!v) return 0;
+                let cleanStr = String(v).replace(/[^0-9,-]/g, '');
+                return Number(cleanStr) || 0;
+            }
+        } return 0;
+    }
+
+    function getStr(r, names, def) {
+        const keys = Object.keys(r);
+        for(let n of names) {
+            const f = keys.find(k => k.trim().toLowerCase() === n.toLowerCase());
+            if(f && r[f]) return String(r[f]).trim();
+        } return def;
+    }
+
+    function handleUpload(e, type) {
+        if(!e.target.files[0]) return;
+        const textElement = type === 'realisasi' ? 'uploadTextReal' : 'uploadTextTarget';
+        document.getElementById(textElement).innerText = 'Memproses...';
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const wb = XLSX.read(new Uint8Array(event.target.result), { type: 'array' });
+                const parsedData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                
+                if(type === 'realisasi') {
+                    realData = parsedData;
+                    localStorage.setItem(REAL_KEY, JSON.stringify(realData));
+                } else {
+                    targetData = parsedData;
+                    localStorage.setItem(TARGET_KEY, JSON.stringify(targetData));
+                }
+                
+                updateUIStatus(type, parsedData.length);
+                processDashboard();
+                switchMenu('beranda');
+                location.reload();
+            } catch (error) { alert("Format file Excel tidak valid."); }
+            document.getElementById(textElement).innerText = 'Timpa dengan File Baru';
+            e.target.value = ''; 
+        };
+        reader.readAsArrayBuffer(e.target.files[0]);
+    }
+
+    document.getElementById('excelFileReal').addEventListener('change', (e) => handleUpload(e, 'realisasi'));
+    document.getElementById('excelFileTarget').addEventListener('change', (e) => handleUpload(e, 'target'));
+
+    function clearStoredData(type) {
+        if(confirm(`Hapus data ${type} tersimpan?`)) {
+            if(type === 'realisasi') localStorage.removeItem(REAL_KEY);
+            else localStorage.removeItem(TARGET_KEY);
+            location.reload();
+        }
+    }
+
+    function updateUIStatus(type, rowCount) {
+        document.getElementById('emptyState').classList.add('d-none');
+        document.getElementById('dashboardSection').classList.remove('d-none');
+        
+        const textId = type === 'realisasi' ? 'uploadTextReal' : 'uploadTextTarget';
+        const badgeId = type === 'realisasi' ? 'dbStatusBadgeReal' : 'dbStatusBadgeTarget';
+        const btnId = type === 'realisasi' ? 'btnHapusDataReal' : 'btnHapusDataTarget';
+
+        document.getElementById(textId).innerText = 'Timpa dengan File Baru';
+        const badge = document.getElementById(badgeId);
+        badge.className = 'badge bg-success';
+        badge.innerText = rowCount + ' Baris Tersimpan';
+        document.getElementById(btnId).disabled = false;
+    }
+
+    function downloadTemplateReal() {
+        const wb = XLSX.utils.book_new();
+        const data = [ ["BO", "Nama Sales", "Kategori", "Bruto Pesan", "Netto Pesan", "Target Bruto", "Target Netto"], ["BO Klaten", "Alfa Rizaldy", "IPE", 16000000, 15000000, 20000000, 18000000] ];
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), "Realisasi");
+        XLSX.writeFile(wb, "Template_Realisasi.xlsx");
+    }
+
+    function downloadTemplateTarget() {
+        const wb = XLSX.utils.book_new();
+        const data = [ ["BO", "Nama Sales", "Target Bruto", "Target Netto"], ["BO Klaten", "Alfa Rizaldy", 20000000, 18000000] ];
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), "Target");
+        XLSX.writeFile(wb, "Template_Target.xlsx");
+    }
+
+    function processDashboard() {
+        boMap = {}; principalMap = {}; globalSalesMap = {}; 
+        totalTargetBruto = 0; totalRealBruto = 0; totalTargetNetto = 0; totalRealNetto = 0;
+
+        const tBrutoKeys = ['target bruto', 'target_bruto', 'targetbruto'];
+        const tNettoKeys = ['target netto', 'target_netto', 'targetnetto'];
+        const rBrutoKeys = ['bruto pesan', 'realisasi bruto', 'bruto'];
+        const rNettoKeys = ['netto pesan', 'realisasi netto', 'netto'];
+        const boKeys = ['bo', 'cabang'];
+        const salesKeys = ['nama sales', 'sales', 'nama'];
+        const katKeys = ['kategori', 'principal'];
+
+        // Process Target
+        targetData.forEach(row => {
+            const bo = getStr(row, boKeys, "Lainnya"), sales = getStr(row, salesKeys, "Tanpa Nama");
+            const tBruto = getNum(row, tBrutoKeys), tNetto = getNum(row, tNettoKeys);
+
+            if(!boMap[bo]) boMap[bo] = { tBruto:0, tNetto:0, rBruto:0, rNetto:0, principals:{} };
+            boMap[bo].tBruto += tBruto; boMap[bo].tNetto += tNetto;
+            
+            if(!globalSalesMap[sales]) globalSalesMap[sales] = { bo: bo, tBruto:0, tNetto:0, rBruto:0, rNetto:0 };
+            globalSalesMap[sales].tBruto += tBruto; globalSalesMap[sales].tNetto += tNetto;
+        });
+
+        // Process Realisasi
+        realData.forEach(row => {
+            const bo = getStr(row, boKeys, "Lainnya"), sales = getStr(row, salesKeys, "Tanpa Nama"), kat = getStr(row, katKeys, "Lainnya");
+            const rBruto = getNum(row, rBrutoKeys), rNetto = getNum(row, rNettoKeys);
+            const fallbackTBruto = getNum(row, tBrutoKeys), fallbackTNetto = getNum(row, tNettoKeys);
+
+            if(!boMap[bo]) boMap[bo] = { tBruto:0, tNetto:0, rBruto:0, rNetto:0, principals:{} };
+            boMap[bo].rBruto += rBruto; boMap[bo].rNetto += rNetto;
+            
+            if(!boMap[bo].principals[kat]) boMap[bo].principals[kat] = { rb:0, rn:0 };
+            boMap[bo].principals[kat].rb += rBruto; boMap[bo].principals[kat].rn += rNetto;
+
+            if(targetData.length === 0) { boMap[bo].tBruto += fallbackTBruto; boMap[bo].tNetto += fallbackTNetto; }
+            
+            if(!globalSalesMap[sales]) globalSalesMap[sales] = { bo: bo, tBruto:0, tNetto:0, rBruto:0, rNetto:0 };
+            globalSalesMap[sales].rBruto += rBruto; globalSalesMap[sales].rNetto += rNetto;
+            if(targetData.length === 0) { globalSalesMap[sales].tBruto += fallbackTBruto; globalSalesMap[sales].tNetto += fallbackTNetto; }
+
+            if(!principalMap[kat]) principalMap[kat] = { bruto: 0, netto: 0 };
+            principalMap[kat].bruto += rBruto; principalMap[kat].netto += rNetto;
+        });
+
+        // Calculate Totals
+        Object.values(boMap).forEach(d => {
+            totalTargetBruto += d.tBruto; totalRealBruto += d.rBruto;
+            totalTargetNetto += d.tNetto; totalRealNetto += d.rNetto;
+        });
+
+        document.getElementById('sumTargetBruto').innerText = 'Rp ' + Math.round(totalTargetBruto).toLocaleString('id-ID');
+        document.getElementById('sumRealBruto').innerText = 'Rp ' + Math.round(totalRealBruto).toLocaleString('id-ID');
+        document.getElementById('sumTargetNetto').innerText = 'Rp ' + Math.round(totalTargetNetto).toLocaleString('id-ID');
+        document.getElementById('sumRealNetto').innerText = 'Rp ' + Math.round(totalRealNetto).toLocaleString('id-ID');
+        
+        let achB = totalTargetBruto > 0 ? ((totalRealBruto / totalTargetBruto) * 100).toFixed(1) : 0;
+        let elAchB = document.getElementById('sumAchBruto'); elAchB.innerText = achB + '%';
+        elAchB.className = `fw-bold ${achB >= 100 ? 'text-success' : (achB >= 70 ? 'text-warning' : 'text-danger')}`;
+
+        let achN = totalTargetNetto > 0 ? ((totalRealNetto / totalTargetNetto) * 100).toFixed(1) : 0;
+        let elAchN = document.getElementById('sumAchNetto'); elAchN.innerText = achN + '%';
+        elAchN.className = `fw-bold ${achN >= 100 ? 'text-success' : (achN >= 70 ? 'text-warning' : 'text-danger')}`;
+
+        document.getElementById('btnExportPPT').classList.remove('d-none');
+
+        renderCharts();
+        renderPrincipalBOCards(); 
+        renderBOTable(boMap); 
+        populateBOFilterDropdown(boMap);
+        renderFilteredSalesTable();
+    }
+
+    function getAchBadge(real, target) {
+        if(target <= 0) return `<span class="badge-ach bg-light text-muted border border-secondary">0%</span>`;
+        const pct = ((real / target) * 100).toFixed(1);
+        let colorClass = pct >= 100 ? 'bg-success text-white' : (pct >= 70 ? 'bg-warning text-dark' : 'bg-danger text-white');
+        return `<span class="badge-ach ${colorClass}">${pct}%</span>`;
+    }
+
+    function renderCharts() {
+        const labels = Object.keys(boMap);
+        const dataNetto = Object.values(boMap).map(v => Math.round(v.rNetto));
+        const dataBruto = Object.values(boMap).map(v => Math.round(v.rBruto));
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const borderColor = isDark ? '#1e293b' : '#ffffff';
+
+        const ctxPieNetto = document.getElementById('boPieChart').getContext('2d');
+        if(boPieChartInstance) boPieChartInstance.destroy();
+        boPieChartInstance = new Chart(ctxPieNetto, { type: 'doughnut', data: { labels: labels, datasets: [{ data: dataNetto, backgroundColor: colorPalette, borderColor: borderColor, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+
+        const ctxPieBruto = document.getElementById('boBrutoPieChart').getContext('2d');
+        if(boBrutoPieChartInstance) boBrutoPieChartInstance.destroy();
+        const altPalette = [...colorPalette].reverse();
+        boBrutoPieChartInstance = new Chart(ctxPieBruto, { type: 'doughnut', data: { labels: labels, datasets: [{ data: dataBruto, backgroundColor: altPalette, borderColor: borderColor, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+
+        const sortedP = Object.entries(principalMap).sort((a,b) => b[1].netto - a[1].netto);
+        const ctxBar = document.getElementById('principalChart').getContext('2d');
+        if(principalChartInstance) principalChartInstance.destroy();
+        principalChartInstance = new Chart(ctxBar, {
+            type: 'bar',
+            data: { labels: sortedP.map(x => x[0]), datasets: [{ label: 'Bruto Pesan', data: sortedP.map(x => Math.round(x[1].bruto)), backgroundColor: '#93c5fd', borderRadius: 4 }, { label: 'Netto Pesan', data: sortedP.map(x => Math.round(x[1].netto)), backgroundColor: '#3b82f6', borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: isDark?'#334155':'#e2e8f0' } } } }
+        });
+    }
+
+    function renderPrincipalBOCards() {
+        let pbMap = {};
+        Object.entries(boMap).forEach(([bo, data]) => {
+            Object.entries(data.principals).forEach(([prin, vals]) => {
+                if(!pbMap[prin]) pbMap[prin] = { totalBruto: 0, totalNetto: 0, bos: {} };
+                pbMap[prin].bos[bo] = { rb: vals.rb, rn: vals.rn };
+                pbMap[prin].totalBruto += vals.rb;
+                pbMap[prin].totalNetto += vals.rn;
+            });
+        });
+
+        const grid = document.getElementById('principalBOGrid');
+        let html = '';
+        const sortedPrin = Object.entries(pbMap).sort((a,b) => b[1].totalNetto - a[1].totalNetto);
+
+        if(sortedPrin.length === 0) {
+            grid.innerHTML = '<div class="col-12 text-center text-muted py-4">Belum ada rincian data per Principal</div>';
+            return;
+        }
+
+        sortedPrin.forEach(([prin, data]) => {
+            let tableRows = '';
+            const sortedBOs = Object.entries(data.bos).sort((a,b) => b[1].rn - a[1].rn);
+            
+            sortedBOs.forEach(([bo, vals], i) => {
+                tableRows += `<tr>
+                    <td class="text-muted border-bottom py-2" style="width: 30px;">${i+1}.</td>
+                    <td class="fw-bold small border-bottom py-2 text-dark">${bo}</td>
+                    <td class="text-end text-success fw-bold small border-bottom py-2">Rp ${Math.round(vals.rn).toLocaleString('id-ID')}</td>
+                </tr>`;
+            });
+
+            let scrollHint = sortedBOs.length > 4 
+                ? `<div class="text-center text-muted opacity-75 mt-2" style="font-size: 0.75rem;"><i class="bi bi-chevron-double-down scroll-hint-icon me-1"></i> Scroll ke bawah</div>` 
+                : '';
+
+            html += `
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border shadow-sm" style="background-color: var(--hover-bg);">
+                    <div class="card-header border-bottom-0 pt-3 pb-2 bg-transparent">
+                        <h6 class="fw-bold text-primary mb-3 text-truncate" title="${prin}">${prin}</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted">Total Bruto:</small>
+                            <small class="text-info fw-bold">Rp ${Math.round(data.totalBruto).toLocaleString('id-ID')}</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <small class="text-muted">Total Netto:</small>
+                            <small class="text-success fw-bold">Rp ${Math.round(data.totalNetto).toLocaleString('id-ID')}</small>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0 pb-2 px-3">
+                        <div class="inner-table-wrapper pe-2" style="max-height: 180px; overflow-y: auto;">
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>${tableRows}</tbody>
+                            </table>
+                        </div>
+                        ${scrollHint}
+                    </div>
+                </div>
+            </div>
+            `;
+        });
+        grid.innerHTML = html;
+    }
+
+    function renderBOTable(boMap) {
+        const sorted = Object.entries(boMap).sort((a, b) => b[1].rNetto - a[1].rNetto);
+        const tb = document.getElementById('boTableBody');
+        if(sorted.length === 0) return tb.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Tidak ada data</td></tr>`;
+
+        tb.innerHTML = sorted.map((item, i) => {
+            let rc = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : 'rank-other'));
+            const d = item[1];
+            return `<tr>
+                <td class="text-center"><span class="rank-badge ${rc}">${i + 1}</span></td>
+                <td class="fw-bold">${item[0]}</td>
+                <td class="text-end text-muted border-start">Rp ${Math.round(d.tBruto).toLocaleString('id-ID')}</td>
+                <td class="text-end text-info fw-bold">Rp ${Math.round(d.rBruto).toLocaleString('id-ID')}</td>
+                <td class="text-center">${getAchBadge(d.rBruto, d.tBruto)}</td>
+                <td class="text-end text-muted border-start">Rp ${Math.round(d.tNetto).toLocaleString('id-ID')}</td>
+                <td class="text-end fw-bold text-success">Rp ${Math.round(d.rNetto).toLocaleString('id-ID')}</td>
+                <td class="text-center">${getAchBadge(d.rNetto, d.tNetto)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function populateBOFilterDropdown(boMap) {
+        const sel = document.getElementById('filterBOSelect'); const activeVal = sel.value; 
+        sel.innerHTML = '<option value="ALL">-- Tampilkan Semua BO --</option>' + Object.keys(boMap).sort().map(bo => `<option value="${bo}">${bo}</option>`).join('');
+        if(Object.keys(boMap).includes(activeVal)) sel.value = activeVal;
+    }
+
+    function renderFilteredSalesTable() {
+        const selBO = document.getElementById('filterBOSelect').value;
+        const searchInput = document.getElementById('searchSalesInput').value.toLowerCase();
+        let mapFiltered = {};
+
+        Object.entries(globalSalesMap).forEach(([sales, data]) => {
+            const matchBO = (selBO === "ALL" || data.bo === selBO);
+            const matchName = sales.toLowerCase().includes(searchInput);
+            if (matchBO && matchName) mapFiltered[sales] = data;
+        });
+
+        const sorted = Object.entries(mapFiltered).sort((a, b) => b[1].rNetto - a[1].rNetto);
+        const tb = document.getElementById('salesTableBody');
+        if(sorted.length === 0) return tb.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Tidak ada data</td></tr>`;
+
+        tb.innerHTML = sorted.map((item, i) => {
+            let rc = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : 'rank-other'));
+            const d = item[1];
+            return `<tr>
+                <td class="text-center"><span class="rank-badge ${rc}">${i + 1}</span></td>
+                <td class="fw-bold">${item[0]}</td>
+                <td><span class="badge border bg-transparent text-muted" style="border-color: var(--border-color) !important;">${d.bo}</span></td>
+                <td class="text-end text-muted border-start">Rp ${Math.round(d.tBruto).toLocaleString('id-ID')}</td>
+                <td class="text-end text-info fw-bold">Rp ${Math.round(d.rBruto).toLocaleString('id-ID')}</td>
+                <td class="text-center">${getAchBadge(d.rBruto, d.tBruto)}</td>
+                <td class="text-end text-muted border-start">Rp ${Math.round(d.tNetto).toLocaleString('id-ID')}</td>
+                <td class="text-end fw-bold text-success">Rp ${Math.round(d.rNetto).toLocaleString('id-ID')}</td>
+                <td class="text-center">${getAchBadge(d.rNetto, d.tNetto)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // --- PPT EXPORT ---
+    function exportToPPT() {
+        if(!realData.length && !targetData.length) return alert("Data kosong. Tidak ada yang bisa diekspor.");
+        document.getElementById('btnExportPPT').innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Mengekspor...';
+        
+        setTimeout(() => {
+            let pptx = new PptxGenJS();
+            pptx.layout = 'LAYOUT_WIDE';
+            const hdrStyle = { bold:true, fill:'1e3a8a', color:'ffffff', fontSize:14, align:'center', valign:'middle' };
+            
+            // Slide 1
+            let slide1 = pptx.addSlide();
+            slide1.addText('RINGKASAN PENCAPAIAN PENJUALAN NASIONAL', { x: 0.5, y: 0.4, w: '90%', fontSize: 24, bold: true, color: '1e3a8a' });
+            let sumData = [
+                [{text:'METRIK', options:hdrStyle}, {text:'TARGET', options:hdrStyle}, {text:'REALISASI', options:hdrStyle}, {text:'% CAPAIAN', options:hdrStyle}],
+                ['BRUTO PESAN', `Rp ${Math.round(totalTargetBruto).toLocaleString('id-ID')}`, `Rp ${Math.round(totalRealBruto).toLocaleString('id-ID')}`, `${totalTargetBruto > 0 ? (totalRealBruto/totalTargetBruto*100).toFixed(1) : 0}%`],
+                ['NETTO PESAN', `Rp ${Math.round(totalTargetNetto).toLocaleString('id-ID')}`, `Rp ${Math.round(totalRealNetto).toLocaleString('id-ID')}`, `${totalTargetNetto > 0 ? (totalRealNetto/totalTargetNetto*100).toFixed(1) : 0}%`]
+            ];
+            slide1.addTable(sumData, { x: 0.5, y: 1.0, w: 12.3, rowH: 0.6, fontSize: 16, border: { pt: 1, color: 'cccccc' }, align: 'center', valign: 'middle' });
+
+            let boLabels = Object.keys(boMap);
+            slide1.addText('KOMPOSISI REALISASI NETTO (BO)', { x: 0.5, y: 3.2, w: 6, fontSize: 14, bold: true, align: 'center', color: '1e3a8a' });
+            slide1.addChart(pptx.ChartType.doughnut, [{ name: 'Realisasi Netto', labels: boLabels, values: boLabels.map(l=>boMap[l].rNetto) }], { x: 0.5, y: 3.5, w: 6, h: 3.5, showLegend: true, legendPos: 'b', chartColors: pptColorPalette, holeSize: 50 });
+            slide1.addText('KOMPOSISI REALISASI BRUTO (BO)', { x: 6.8, y: 3.2, w: 6, fontSize: 14, bold: true, align: 'center', color: '1e3a8a' });
+            slide1.addChart(pptx.ChartType.doughnut, [{ name: 'Realisasi Bruto', labels: boLabels, values: boLabels.map(l=>boMap[l].rBruto) }], { x: 6.8, y: 3.5, w: 6, h: 3.5, showLegend: true, legendPos: 'b', chartColors: [...pptColorPalette].reverse(), holeSize: 50 });
+
+            // Slide 2
+            let slide2 = pptx.addSlide();
+            slide2.addText('REALISASI PESANAN PER PRINCIPAL (BRUTO VS NETTO)', { x: 0.5, y: 0.5, w: '90%', fontSize: 24, bold: true, color: '1e3a8a' });
+            let pLabels = Object.keys(principalMap);
+            slide2.addChart(pptx.ChartType.bar, [
+                { name: 'Bruto Pesan', labels: pLabels, values: pLabels.map(k => principalMap[k].bruto) },
+                { name: 'Netto Pesan', labels: pLabels, values: pLabels.map(k => principalMap[k].netto) }
+            ], { x: 0.5, y: 1.2, w: 12.3, h: 5.5, barDir: 'col', barGrouping: 'clustered', showLegend: true, legendPos: 't', chartColors: ['93c5fd', '3b82f6'], showValue: true, valGridLine: { style: 'solid', color: 'e2e8f0' } });
+
+            // Slide 3
+            let slide3 = pptx.addSlide();
+            slide3.addText('PERINGKAT PENCAPAIAN CABANG (BO)', { x: 0.5, y: 0.5, w: '90%', fontSize: 24, bold: true, color: '1e3a8a' });
+            let tableBOData = [[{text:'Rank', options:hdrStyle}, {text:'Cabang (BO)', options:hdrStyle}, {text:'Target Bruto', options:hdrStyle}, {text:'Real. Bruto', options:hdrStyle}, {text:'% Ach', options:hdrStyle}, {text:'Target Netto', options:hdrStyle}, {text:'Real. Netto', options:hdrStyle}, {text:'% Ach', options:hdrStyle}]];
+            Object.entries(boMap).sort((a,b) => b[1].rNetto - a[1].rNetto).forEach(([bName, bData], index) => {
+                tableBOData.push([{text: String(index+1), options: {align: 'center'}}, bName, `Rp ${Math.round(bData.tBruto).toLocaleString('id-ID')}`, `Rp ${Math.round(bData.rBruto).toLocaleString('id-ID')}`, `${bData.tBruto > 0 ? (bData.rBruto/bData.tBruto*100).toFixed(1) : 0}%`, `Rp ${Math.round(bData.tNetto).toLocaleString('id-ID')}`, `Rp ${Math.round(bData.rNetto).toLocaleString('id-ID')}`, `${bData.tNetto > 0 ? (bData.rNetto/bData.tNetto*100).toFixed(1) : 0}%`]);
+            });
+            slide3.addTable(tableBOData, { x: 0.5, y: 1.2, w: 12.3, fontSize: 11, border: { pt: 1, color: 'cccccc' }, autoPage: true });
+
+            // Slide 4+
+            Object.entries(boMap).sort((a,b)=>b[1].rNetto - a[1].rNetto).forEach(([boName, boData]) => {
+                let slideBO = pptx.addSlide();
+                slideBO.addText(`RINCIAN CABANG: ${boName.toUpperCase()}`, { x: 0.5, y: 0.4, w: '90%', fontSize: 20, bold: true, color: '16a34a' });
+                slideBO.addTable([[
+                    {text: 'TOTAL REALISASI BRUTO', options:{bold:true, fill:'f0fdf4', color:'16a34a'}}, {text: `Rp ${Math.round(boData.rBruto).toLocaleString('id-ID')}`, options:{bold:true}},
+                    {text: 'TOTAL REALISASI NETTO', options:{bold:true, fill:'f0fdf4', color:'16a34a'}}, {text: `Rp ${Math.round(boData.rNetto).toLocaleString('id-ID')}`, options:{bold:true}}
+                ]], { x: 0.5, y: 1.0, w: 12.3, fontSize: 14, border: { pt: 1, color: 'cccccc' }, align: 'center', valign: 'middle' });
+
+                let salesInBO = Object.entries(globalSalesMap).filter(([k,v]) => v.bo === boName).sort((a,b)=>b[1].rBruto - a[1].rBruto);
+                if(salesInBO.length > 0) {
+                    let slLabels = salesInBO.map(x => x[0]), slTgtB = salesInBO.map(x => x[1].tBruto), slRealB = salesInBO.map(x => x[1].rBruto);
+                    slideBO.addText("Grafik Target vs Realisasi Bruto per Sales", { x: 0.5, y: 1.7, fontSize: 12, bold: true });
+                    slideBO.addChart(pptx.ChartType.bar, [
+                        { name: 'Target Bruto', labels: slLabels, values: slTgtB }, { name: 'Real Bruto', labels: slLabels, values: slRealB }
+                    ], { x: 0.5, y: 2.0, w: 12.3, h: 2.5, barDir: 'col', barGrouping: 'clustered', chartColors: ['facc15', '3b82f6'], showLegend: true, legendPos: 'r', fontSize: 8 });
+                }
+
+                slideBO.addText('Tabel Rincian Pencapaian per Sales', { x: 0.5, y: 4.6, fontSize: 12, bold: true });
+                let sTable = [[
+                    {text:'Nama Sales', options:hdrStyle}, {text:'Tgt Bruto', options:hdrStyle}, {text:'Real Bruto', options:hdrStyle}, {text:'% Ach B', options:hdrStyle},
+                    {text:'Tgt Netto', options:hdrStyle}, {text:'Real Netto', options:hdrStyle}, {text:'% Ach N', options:hdrStyle}
+                ]];
+                salesInBO.sort((a,b)=>b[1].rNetto - a[1].rNetto).forEach(([sk, sv]) => {
+                    sTable.push([sk, `Rp ${Math.round(sv.tBruto).toLocaleString('id-ID')}`, `Rp ${Math.round(sv.rBruto).toLocaleString('id-ID')}`, `${sv.tBruto > 0 ? (sv.rBruto/sv.tBruto*100).toFixed(1) : 0}%`, `Rp ${Math.round(sv.tNetto).toLocaleString('id-ID')}`, `Rp ${Math.round(sv.rNetto).toLocaleString('id-ID')}`, `${sv.tNetto > 0 ? (sv.rNetto/sv.tNetto*100).toFixed(1) : 0}%`]);
+                });
+                slideBO.addTable(sTable, { x: 0.5, y: 4.9, w: 12.3, fontSize: 8, border: { pt: 1, color: 'cccccc' }, autoPage: true });
+            });
+
+            pptx.writeFile({ fileName: `Laporan_Penjualan_Intan_Pariwara.pptx` }).then(() => {
+                document.getElementById('btnExportPPT').innerHTML = '<i class="bi bi-file-earmark-ppt-fill me-2"></i>Ekspor ke PPT';
+            });
+        }, 500);
+    }
+</script>
+
+</body>
+</html>
